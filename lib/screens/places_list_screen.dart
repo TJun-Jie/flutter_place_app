@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_complete_guide/providers/great_places.dart';
 import 'package:flutter_complete_guide/screens/add_place_screen.dart';
+import 'package:flutter_complete_guide/screens/place_detail_screen.dart';
 import 'package:provider/provider.dart';
 
 class PlacesListScreen extends StatelessWidget {
@@ -21,24 +22,40 @@ class PlacesListScreen extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Consumer<GreatPlaces>(
-          builder: (context, greatPlaces, ch) => greatPlaces.items.length <= 0
-              ? ch
-              : ListView.builder(
-                  itemBuilder: (ctx, i) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundImage: FileImage(greatPlaces.items[i].image),
-                    ),
-                    title: Text(greatPlaces.items[i].title),
-                    onTap: () {
-                      //go to detail page
-                    },
+        child: FutureBuilder(
+          future: Provider.of<GreatPlaces>(context, listen: false)
+              .fetchAndSetPlaces(),
+          builder: (context, snapshot) => snapshot.connectionState ==
+                  ConnectionState.waiting
+              ? Center(
+                  child: CircularProgressIndicator(),
+                )
+              : Consumer<GreatPlaces>(
+                  builder: (context, greatPlaces, ch) =>
+                      greatPlaces.items.length <= 0
+                          ? ch
+                          : ListView.builder(
+                              itemBuilder: (ctx, i) => ListTile(
+                                leading: CircleAvatar(
+                                  backgroundImage:
+                                      FileImage(greatPlaces.items[i].image),
+                                ),
+                                title: Text(greatPlaces.items[i].title),
+                                subtitle:
+                                    Text(greatPlaces.items[i].location.address),
+                                onTap: () {
+                                  //go to detail page
+                                  Navigator.of(context).pushNamed(
+                                      PlaceDetailScreen.routeName,
+                                      arguments: greatPlaces.items[i].id);
+                                },
+                              ),
+                              itemCount: greatPlaces.items.length,
+                            ),
+                  child: Center(
+                    child: const Text('No places yet, start adding some!'),
                   ),
-                  itemCount: greatPlaces.items.length,
                 ),
-          child: Center(
-            child: const Text('No places yet, start adding some!'),
-          ),
         ),
       ),
     );
